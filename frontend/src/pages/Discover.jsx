@@ -1,0 +1,6 @@
+import React,{useMemo,useState} from "react";
+import RecipeCard from "../components/RecipeCard";
+import SpoonSearch from "../components/SpoonSearch";
+import { categories, recipes, matchesRecipe } from "../data";
+import { useApp } from "../context/AppContext";
+export default function Discover({onOpenRecipe}){const [category,setCategory]=useState("All");const [query,setQuery]=useState("");const {posts}=useApp();const list=useMemo(()=>[...posts,...recipes].filter(r=>(category==="All"||r.category===category)&&matchesRecipe(r,query)),[posts,category,query]);return <main className="content-page"><div className="page-hero compact"><span className="kicker">DISCOVER</span><h1>Find your next<br/><em>favorite bite.</em></h1><p>Browse by category, region and the people behind the recipes.</p><SpoonSearch value={query} onChange={setQuery} onSubmit={()=>setQuery(query.trim())}/></div><div className="filter-row">{categories.map(c=><button type="button" key={c} className={category===c?"filter active":"filter"} onClick={()=>setCategory(c)}>{c}</button>)}</div><div className="recipe-grid">{list.map(r=><RecipeCard key={r.id} recipe={r} onOpen={onOpenRecipe}/>)}</div>{!list.length&&<div className="empty-state"><h2>No recipes found</h2><p>Try a recipe name, ingredient, region or cook.</p></div>}</main>}
