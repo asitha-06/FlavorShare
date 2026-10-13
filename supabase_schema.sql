@@ -1,23 +1,45 @@
-create extension if not exists pgcrypto;
-create table if not exists public.profiles(id uuid primary key references auth.users(id) on delete cascade,username text,display_name text,bio text,language text default 'English',avatar_url text,created_at timestamptz not null default now(),updated_at timestamptz not null default now());
-create table if not exists public.recipes(id uuid primary key default gen_random_uuid(),user_id uuid not null references auth.users(id) on delete cascade,title text not null,description text,category text,region text,image_url text,video_url text,theme text,chef_type text not null default 'Home Chef',hashtags text[] default '{}',ingredients text[] default '{}',steps text[] default '{}',created_at timestamptz not null default now(),updated_at timestamptz not null default now());
-alter table public.recipes add column if not exists chef_type text not null default 'Home Chef';
-create table if not exists public.follows(follower_id uuid not null references auth.users(id) on delete cascade,following_id uuid not null references auth.users(id) on delete cascade,created_at timestamptz not null default now(),primary key(follower_id,following_id),check(follower_id<>following_id));
-create table if not exists public.likes(user_id uuid not null references auth.users(id) on delete cascade,recipe_id uuid not null references public.recipes(id) on delete cascade,created_at timestamptz not null default now(),primary key(user_id,recipe_id));
-create table if not exists public.comments(id uuid primary key default gen_random_uuid(),recipe_id uuid not null references public.recipes(id) on delete cascade,user_id uuid not null references auth.users(id) on delete cascade,content text not null,created_at timestamptz not null default now());
-create or replace function public.handle_new_user() returns trigger language plpgsql security definer set search_path=public as $$ begin insert into public.profiles(id,username,display_name) values(new.id,coalesce(new.raw_user_meta_data->>'username',split_part(coalesce(new.email,''),'@',1)),coalesce(new.raw_user_meta_data->>'display_name',split_part(coalesce(new.email,''),'@',1))) on conflict(id) do nothing; return new; end; $$;
-drop trigger if exists on_auth_user_created on auth.users; create trigger on_auth_user_created after insert on auth.users for each row execute procedure public.handle_new_user();
-alter table public.profiles enable row level security; alter table public.recipes enable row level security; alter table public.follows enable row level security; alter table public.likes enable row level security; alter table public.comments enable row level security;
-drop policy if exists profiles_select on public.profiles; create policy profiles_select on public.profiles for select using(true); drop policy if exists profiles_insert on public.profiles; create policy profiles_insert on public.profiles for insert with check(auth.uid()=id); drop policy if exists profiles_update on public.profiles; create policy profiles_update on public.profiles for update using(auth.uid()=id);
-drop policy if exists recipes_select on public.recipes; create policy recipes_select on public.recipes for select using(true); drop policy if exists recipes_insert on public.recipes; create policy recipes_insert on public.recipes for insert with check(auth.uid()=user_id); drop policy if exists recipes_update on public.recipes; create policy recipes_update on public.recipes for update using(auth.uid()=user_id); drop policy if exists recipes_delete on public.recipes; create policy recipes_delete on public.recipes for delete using(auth.uid()=user_id);
-drop policy if exists follows_select on public.follows; create policy follows_select on public.follows for select using(true); drop policy if exists follows_insert on public.follows; create policy follows_insert on public.follows for insert with check(auth.uid()=follower_id); drop policy if exists follows_delete on public.follows; create policy follows_delete on public.follows for delete using(auth.uid()=follower_id);
-drop policy if exists likes_select on public.likes; create policy likes_select on public.likes for select using(true); drop policy if exists likes_insert on public.likes; create policy likes_insert on public.likes for insert with check(auth.uid()=user_id); drop policy if exists likes_delete on public.likes; create policy likes_delete on public.likes for delete using(auth.uid()=user_id);
-drop policy if exists comments_select on public.comments; create policy comments_select on public.comments for select using(true); drop policy if exists comments_insert on public.comments; create policy comments_insert on public.comments for insert with check(auth.uid()=user_id); drop policy if exists comments_update on public.comments; create policy comments_update on public.comments for update using(auth.uid()=user_id); drop policy if exists comments_delete on public.comments; create policy comments_delete on public.comments for delete using(auth.uid()=user_id);
--- Storage: create a public bucket named recipe-media in Dashboard > Storage first.
--- Then run these policies.
-drop policy if exists recipe_media_insert on storage.objects;
-create policy recipe_media_insert on storage.objects for insert to authenticated with check(bucket_id='recipe-media' and (storage.foldername(name))[1]=auth.uid()::text);
-drop policy if exists recipe_media_delete on storage.objects;
-create policy recipe_media_delete on storage.objects for delete to authenticated using(bucket_id='recipe-media' and (storage.foldername(name))[1]=auth.uid()::text);
-drop policy if exists recipe_media_select on storage.objects;
-create policy recipe_media_select on storage.objects for select to public using(bucket_id='recipe-media');
+
+-- 1. Account type: NULL means onboarding is not completed yet.
+ALTER TABLE public.profiles
+ADD COLUMN IF NOT EXISTS role text;
+
+-- Allow only these account types.
+ALTER TABLE public.profiles
+DROP CONSTRAINT IF EXISTS profiles_role_check;
+
+ALTER TABLE public.profiles
+ADD CONSTRAINT profiles_role_check
+CHECK (role IS NULL OR role IN ('viewer', 'homechef', 'headchef'));
+
+-- 2. Real follow relationships.
+CREATE TABLE IF NOT EXISTS public.follows (
+  follower_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  following_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY (follower_id, following_id),
+  CHECK (follower_id <> following_id)
+);
+
+ALTER TABLE public.follows ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS follows_select ON public.follows;
+CREATE POLICY follows_select ON public.follows
+FOR SELECT TO authenticated
+USING (true);
+
+DROP POLICY IF EXISTS follows_insert ON public.follows;
+CREATE POLICY follows_insert ON public.follows
+FOR INSERT TO authenticated
+WITH CHECK (auth.uid() = follower_id);
+
+DROP POLICY IF EXISTS follows_delete ON public.follows;
+CREATE POLICY follows_delete ON public.follows
+FOR DELETE TO authenticated
+USING (auth.uid() = follower_id);
+
+-- 3. Ensure users can read chef profiles.
+ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS profiles_select ON public.profiles;
+CREATE POLICY profiles_select ON public.profiles
+FOR SELECT USING (true);
