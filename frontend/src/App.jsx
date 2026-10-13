@@ -11,6 +11,7 @@ import CreatePost from "./pages/CreatePost";
 import Premium from "./pages/Premium";
 import Regions from "./pages/Regions";
 import Categories from "./pages/Categories";
+import Chefs from "./pages/Chefs";
 import Settings from "./pages/Settings";
 import Profile from "./pages/Profile";
 import FAQ from "./pages/FAQ";
@@ -27,7 +28,7 @@ function AppInner() {
     flash,
     t,
     session,
-    loading: authLoading
+    loading: authLoading,
   } = useApp();
 
   const [auth, setAuth] = useState("welcome");
@@ -36,23 +37,19 @@ function AppInner() {
   const [loading, setLoading] = useState(false);
   const [selected, setSelected] = useState(null);
   const [themePage, setThemePage] = useState("Warm Kitchen");
-  const [themeReturnPage, setThemeReturnPage] =
-    useState("Create Post");
-
-  // First-login role selection
+  const [themeReturnPage, setThemeReturnPage] = useState("Create Post");
   const [role, setRole] = useState(null);
   const [checkingRole, setCheckingRole] = useState(true);
   const [roleError, setRoleError] = useState("");
 
   useEffect(() => {
-    document.documentElement.dataset.theme =
-      theme.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+    document.documentElement.dataset.theme = theme
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-");
 
-    document.documentElement.dataset.dark =
-      dark ? "true" : "false";
+    document.documentElement.dataset.dark = dark ? "true" : "false";
   }, [theme, dark]);
 
-  // Load the user's saved role from Supabase
   useEffect(() => {
     let active = true;
 
@@ -132,23 +129,13 @@ function AppInner() {
     return (
       <main className="welcome-page">
         <div className="welcome-doodle">✦</div>
-
-        <img
-          src="/logo.svg"
-          className="welcome-logo"
-          alt="FlavorShare"
-        />
-
-        <span className="kicker">
-          FLAVORS · STORIES · PEOPLE
-        </span>
-
+        <img src="/logo.svg" className="welcome-logo" alt="FlavorShare" />
+        <span className="kicker">FLAVORS · STORIES · PEOPLE</span>
         <h1>
           Welcome to
           <br />
           <em>FlavorShare.</em>
         </h1>
-
         <p>A little kitchen on your screen.</p>
 
         <button
@@ -173,16 +160,9 @@ function AppInner() {
   }
 
   if (!session && (auth === "login" || auth === "signup")) {
-    return (
-      <Auth
-        mode={auth}
-        onSuccess={loginSuccess}
-        setMode={setAuth}
-      />
-    );
+    return <Auth mode={auth} onSuccess={loginSuccess} setMode={setAuth} />;
   }
 
-  // Do not show the application until the saved role is checked
   if (session && checkingRole) {
     return (
       <main className="welcome-page">
@@ -191,7 +171,6 @@ function AppInner() {
     );
   }
 
-  // Handle profile/database errors without silently skipping onboarding
   if (session && roleError) {
     return (
       <main className="welcome-page">
@@ -211,7 +190,6 @@ function AppInner() {
     );
   }
 
-  // First login: ask the user to choose an account type
   if (session && !role) {
     return (
       <ChooseRole
@@ -254,6 +232,13 @@ function AppInner() {
     content = <Regions onOpenRecipe={setSelected} />;
   } else if (page === "Categories") {
     content = <Categories onOpenRecipe={setSelected} />;
+  } else if (page === "Home Chef" || page === "Head Chef" || page === "Chefs") {
+    content = (
+      <Chefs
+        onOpenRecipe={setSelected}
+        initialType={page === "Home Chef" ? "Home Chef" : page === "Head Chef" ? "Head Chef" : "All"}
+      />
+    );
   } else if (page === "Settings") {
     content = (
       <Settings

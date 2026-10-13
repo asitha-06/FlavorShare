@@ -7,7 +7,8 @@ const items = [
   ["Create Post", "＋", "create"],
   ["Premium", "✦", "premium"],
   ["Regions", "◌", "regions"],
-  ["Chefs", "♨", "chefs"],
+  ["Home Chef", "♨", "homeChef"],
+  ["Head Chef", "♨", "headChef"],
   ["Categories", "▦", "categories"],
   ["Settings", "⚙", "settings"],
   ["Profile", "○", "profile"],
@@ -44,7 +45,12 @@ export default function SideMenu({ page, setPage, open, onClose }) {
         <div className="menu-heading">
           <span className="menu-lines">☰</span>
           <strong>{t("menu")}</strong>
-          <button onClick={onClose} className="close-menu">
+          <button
+            type="button"
+            onClick={onClose}
+            className="close-menu"
+            aria-label="Close menu"
+          >
             ×
           </button>
         </div>
@@ -52,17 +58,20 @@ export default function SideMenu({ page, setPage, open, onClose }) {
         <nav>
           {items.map(([label, icon, key]) => (
             <button
+              type="button"
               key={label}
-              className={
-                page === label ? "menu-item active" : "menu-item"
-              }
+              className={page === label ? "menu-item active" : "menu-item"}
               onClick={() => {
                 setPage(label);
                 onClose();
               }}
             >
               <span>{icon}</span>
-              {key === "chefs" ? "Head & Home Chefs" : t(key)}
+              {key === "homeChef"
+                ? "Home Chef"
+                : key === "headChef"
+                ? "Head Chef"
+                : t(key)}
             </button>
           ))}
 
