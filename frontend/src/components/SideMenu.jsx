@@ -7,6 +7,7 @@ const items = [
   ["Create Post", "＋", "create"],
   ["Premium", "✦", "premium"],
   ["Regions", "◌", "regions"],
+  ["Chefs", "♨", "chefs"],
   ["Categories", "▦", "categories"],
   ["Settings", "⚙", "settings"],
   ["Profile", "○", "profile"],
@@ -61,7 +62,7 @@ export default function SideMenu({ page, setPage, open, onClose }) {
               }}
             >
               <span>{icon}</span>
-              {t(key)}
+              {key === "chefs" ? "Head & Home Chefs" : t(key)}
             </button>
           ))}
 

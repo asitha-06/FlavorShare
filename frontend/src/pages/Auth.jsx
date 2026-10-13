@@ -49,7 +49,8 @@ export default function Auth({ mode, onSuccess, setMode }) {
             data: {
               username: email.split('@')[0],
               display_name: fullName
-            }
+            },
+            emailRedirectTo: window.location.origin
           }
         });
 
@@ -76,8 +77,9 @@ export default function Auth({ mode, onSuccess, setMode }) {
           onSuccess();
         }
       } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password: form.password });
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password: form.password });
         if (error) throw error;
+        if (!data.session) throw new Error('Login did not create a session. If you just confirmed your email, return here and log in again.');
         onSuccess();
       }
     } catch (err) {

@@ -15,6 +15,7 @@ import FAQ from "./pages/FAQ";
 import Bookmark from "./pages/Bookmark";
 import RecipeDetail from "./pages/RecipeDetail";
 import ThemePreview from "./pages/ThemePreview";
+import Chefs from "./pages/Chefs";
 import { AppProvider, useApp } from "./context/AppContext";
 
 function AppInner() {
@@ -75,6 +76,7 @@ function AppInner() {
   else if (page === "Create Post") content = <CreatePost onPost={(recipe) => { setSelected(recipe); navigate("Home"); }} onOpenTheme={(name) => { setThemePage(name); setThemeReturnPage("Create Post"); navigate("Theme Preview"); }} />;
   else if (page === "Premium") content = <Premium/>;
   else if (page === "Regions") content = <Regions onOpenRecipe={setSelected}/>;
+  else if (page === "Chefs") content = <Chefs onOpenRecipe={setSelected}/>;
   else if (page === "Categories") content = <Categories onOpenRecipe={setSelected}/>;
   else if (page === "Settings") content = <Settings onOpenTheme={(name) => { setThemePage(name); setThemeReturnPage("Settings"); navigate("Theme Preview"); }} />;
   else if (page === "Profile") content = <Profile onOpenRecipe={setSelected}/>;

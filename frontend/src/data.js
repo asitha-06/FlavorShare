@@ -7,6 +7,11 @@ export const recipes = [
   {id:6,name:"Rose Cardamom Cake",description:"A soft bakery-style cake scented with rose and cardamom.",category:"Dessert",region:"Indian",creator:"Tara Shah",time:"50 min",image:"https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=1200&q=85",hashtags:["#Bakery","#Cardamom"],ingredients:["Flour","Cardamom","Rose water","Sugar","Milk"],steps:["Mix dry ingredients.","Whisk wet ingredients.","Combine gently.","Bake and decorate."]}
 ];
 
+recipes.forEach((recipe, index) => {
+  const isHeadChef = index === 0 || index === 4;
+  recipe.chefType = isHeadChef ? "Head Chef" : "Home Chef";
+  recipe.hashtags = [...(recipe.hashtags || []), isHeadChef ? "#HeadChef" : "#HomeChef", "#FlavorShare"];
+});
 
 export const normalizeSearch = value => String(value || "").toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9\s]/g," ").replace(/\s+/g," ").trim();
 export const matchesRecipe = (recipe, query) => {
@@ -31,7 +36,7 @@ export const themeMeta = {
 
 export const ui = {
   English: {
-    menu:"MENU", home:"Home", create:"Create Post", premium:"Premium", regions:"Regions", categories:"Categories", settings:"Settings", profile:"Profile", faq:"FAQ", bookmark:"Bookmarks",
+    menu:"MENU", home:"Home", create:"Create Post", premium:"Premium", regions:"Regions", chefs:"Head & Home Chefs", categories:"Categories", settings:"Settings", profile:"Profile", faq:"FAQ", bookmark:"Bookmarks",
     selectLanguage:"Select your comfortable language", goodFood:"Good food", travels:"travels.", discoverCopy:"Discover recipes from home kitchens, regional tables and little corners of the world.",
     topRecipes:"TOP RECIPES", shared:"Shared from warm kitchens", all:"All", breakfast:"Breakfast", lunch:"Lunch", snack:"Snack", dessert:"Dessert", salade:"Salade",
     regionsTitle:"Every place", regionsTitle2:"has a flavor.", chooseTable:"Choose a table", createTitle:"Set the table for", createTitle2:"your recipe.", chooseTheme:"Choose a theme", post:"Post to FlavorShare", posted:"Recipe posted successfully!", viewHome:"You can view it at the top of Home.",
