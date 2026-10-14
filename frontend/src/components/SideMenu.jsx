@@ -29,6 +29,7 @@ export default function SideMenu({ page, setPage, open, onClose }) {
       }
 
       onClose();
+      window.location.reload();
     } catch (error) {
       notify(error.message || "Unable to log out. Please try again.");
     }
@@ -41,10 +42,21 @@ export default function SideMenu({ page, setPage, open, onClose }) {
         onClick={onClose}
       />
 
-      <aside className={`side-menu ${open ? "open" : ""}`}>
-        <div className="menu-heading">
+      <aside
+        className={`side-menu ${open ? "open" : ""}`}
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          height: "100dvh",
+          maxHeight: "100dvh",
+          overflow: "hidden",
+          boxSizing: "border-box",
+        }}
+      >
+        <div className="menu-heading" style={{ flexShrink: 0 }}>
           <span className="menu-lines">☰</span>
           <strong>{t("menu")}</strong>
+
           <button
             type="button"
             onClick={onClose}
@@ -55,12 +67,20 @@ export default function SideMenu({ page, setPage, open, onClose }) {
           </button>
         </div>
 
-        <nav>
+        <nav
+          style={{
+            flex: "1 1 auto",
+            minHeight: 0,
+            overflowY: "auto",
+          }}
+        >
           {items.map(([label, icon, key]) => (
             <button
               type="button"
               key={label}
-              className={page === label ? "menu-item active" : "menu-item"}
+              className={
+                page === label ? "menu-item active" : "menu-item"
+              }
               onClick={() => {
                 setPage(label);
                 onClose();
@@ -74,20 +94,38 @@ export default function SideMenu({ page, setPage, open, onClose }) {
                 : t(key)}
             </button>
           ))}
+        </nav>
 
+        <div
+          style={{
+            flexShrink: 0,
+            padding: "10px 12px",
+            borderTop: "1px solid rgba(128,128,128,0.2)",
+            background: "inherit",
+          }}
+        >
           <button
             type="button"
             className="menu-item logout-item"
             onClick={handleLogout}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              width: "100%",
+              minHeight: "44px",
+              visibility: "visible",
+              opacity: 1,
+              cursor: "pointer",
+            }}
           >
             <span>↪</span>
             Logout
           </button>
-        </nav>
 
-        <div className="menu-note">
-          <span>made around a table</span>
-          <small>FlavorShare · 2026</small>
+          <div className="menu-note">
+            <span>made around a table</span>
+            <small>FlavorShare · 2026</small>
+          </div>
         </div>
       </aside>
     </>

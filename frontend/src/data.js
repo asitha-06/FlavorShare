@@ -9,6 +9,9 @@ export const recipes = [
 
 recipes.forEach((recipe, index) => {
   const isHeadChef = index === 0 || index === 4;
+  // These curated sample chefs are demo profiles, not Supabase users.
+  // Stable IDs let the UI support local demo likes/follows without disabling buttons.
+  recipe.creatorId = `demo-chef-${String(recipe.creator).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}`;
   recipe.chefType = isHeadChef ? "Head Chef" : "Home Chef";
   recipe.hashtags = [...(recipe.hashtags || []), isHeadChef ? "#HeadChef" : "#HomeChef", "#FlavorShare"];
 });
